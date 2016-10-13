@@ -2,7 +2,8 @@
 
 ## introduction
 
-ce tutoriel indiques les étapes pour formater une carte sd en installant une image de Raspbian Wheezy. Il a été fait sous Mac OS X (10.9)
+ce tutoriel indiques les étapes pour formater une carte sd en installant une image de Raspbian Jessy. Il a été fait sous Mac OS X (10.11).
+Il est inspiré [du site officiel raspberry](https://www.raspberrypi.org/documentation/installation/installing-images/mac.md)
 
 ## choix de l’os pour RaspberryPI
 
@@ -34,73 +35,57 @@ l’objectif est de formater la carte, pour installer l'OS sur la carte.
 
 ** cette commande supprimera définitivement toutes les données de la carte SD. **
 
-ouvrez le terminal (rechercher `terminal` dans spotlight) 
+Lancer l’utilitaire de disque et formaté la carte en **MS-DOS (FAT)** `FAT-32`
+![image](assets/diskutils.png)
 
-![terminal mac os x icon](assets/terminal_icon.png)
+Ensuite, identifier le code du lecteur de carte SD. Pour se faire, lancer `À propos de ce Mac` puis `Rapport Système` puis `USB`. Il faudra alors identifier le `Nom BSD` avec le nombre associé qu'il faudra retenir : 
+![image](assets/system-report.png)
 
-une fois le terminal lancé, tapez la commande suivante, puis `Entrer` pour executer la commande. 
+	ici c’est disk2 
+	le nombre associé est 2
+	
+Dans l’application `Terminal`, on va démonté le Volume.
+il faut d’abord identifier le disque
 
-```
-df -h
-```
-cette commande affiche la liste des différents volumes montés sur votre ordinateur. 
-une liste de ce type doit apparaitre. 
+	df -h
 
-```
-Filesystem                          Size   Used  Avail Capacity  iused   ifree %iused  Mounted on
-/dev/disk0s2                       297Gi  267Gi   30Gi    90% 70051250 7881652   90%   /
-devfs                              188Ki  188Ki    0Bi   100%      649       0  100%   /dev
-map -hosts                           0Bi    0Bi    0Bi   100%        0       0  100%   /net
-map auto_home                        0Bi    0Bi    0Bi   100%        0       0  100%   /home
-localhost:/LEAJnl_Whjo--ZIr7qHvaz  297Gi  297Gi    0Bi   100%        0       0  100%   /Volumes/MobileBackups
-/dev/disk2s1                       7.5Gi   32Ki  7.5Gi     1%        0       0  100%   /Volumes/NO NAME
-```
+Apparait alors une liste
 
-cherchez la ligne qui correspond à la carte mémoire. moi, on l’a vu, c'est `NO NAME`. 
-son identifiant dans la collone `Filesystem` est `/dev/disk2s1`. 
-vous pouvez copier cet identifiant de disque car il nous servira par la suite. 
+	Filesystem                          Size   Used  Avail Capacity   iused   ifree %iused  Mounted on
+	/dev/disk1                         465Gi  448Gi   16Gi    97% 117528314 4309284   96%   /
+	devfs                              190Ki  190Ki    0Bi   100%       657       0  100%   /dev
+	map -hosts                           0Bi    0Bi    0Bi   100%         0       0  100%   /net
+	map auto_home                        0Bi    0Bi    0Bi   100%         0       0  100%   /home
+	localhost:/VI1Vaq2Dgz-lRUYvPCs5B8  465Gi  465Gi    0Bi   100%         0       0  100%   /Volumes/MobileBackups
+	/dev/disk3s2                       4.7Gi  4.6Gi  110Mi    98%   1199356   28162   98%   /Volumes/OS X Install ESD
+	/dev/disk2s1                        15Gi  2.4Mi   15Gi     1%         0       0  100%   /Volumes/UNTITLED	
+	
+On identifie le disque puis, on le démonte avec cette commande :
 
-on va maintenant démonter la carte SD (virtuellement !) 
-executez donc la commande suivante (remplacez `/dev/disk2s1` par votre identifiant de disque) : 
+	diskutil unmount /dev/disk2s1	
 
-```
-diskutil unmount /dev/disk2s1
-```
-le disque est maintenant démonté, le message suivant devrait s'afficher 
+### transfert de l’image disque
 
-```
-Volume NO NAME on disk2s1 unmounted
-```
-on va maintenant transferer le fichier **d'image disque ** de l’OS téléchargé plus haut
+Ensuite on peut (enfin!) chargé l’image sur la carte. identifier le chemin du fichier `.img` de l’image Raspbian. Aussi l’identifiant final est obtenu sur ce modèle `/dev/rdisk` + `n`. Il faudra saisir votre mot de passe (il n'est pas visible lors de la frappe.) Attention, cette étape va prendre un certain temps — plusieurs minutes.
+ 
+	sudo dd bs=1m if=~/2016-09-23-raspbian-jessie.img of=/dev/rdisk2
 
-```
-sudo dd bs=1m if=/Users/arthurvioly/Documents/RaspberryPi/2014-01-07-wheezy-raspbian.img of=/dev/disk2s1
-```
-il faudra évidement saisir le chemin du fichier image sur votre ordinateur. vous pouvez le trouver en faisant `Lire les informations` depuis le finder. 
+Il est possible d’obtenir la progression avec la combinaison `CTRL`+`t`
 
-dans le terminal, la commande `sudo` vous demandera de saisir votre mot de passe systeme. qaund on le tape dans le terminal, il ne s'affiche pas, même pas sous forme d'astérisques. il suffira de faire ENTER pour valider. 
-
-on doit attendre quelques minutes (entre 6 et 15 minutes, suivant la vitesse de transfert vers la carte)… patiente.
-
-on obtient ensuite le résultat suivant dans le terminal. c'est presque fini.
-
-```
-475+0 records in
-474+0 records out
-497025024 bytes transferred in 434.977746 secs (1142645 bytes/sec)
-```
+	load: 1.68  cmd: dd 14146 uninterruptible 0.01u 1.66s
+	3344+0 records in
+	3343+0 records out
+	3505389568 bytes transferred in 320.404427 secs (10940515 bytes/sec)	
+### c’est presque fini
 
 éjectez ensuite la carte avec la commande suivante :
 
-```
-diskutil eject /dev/disk2s1
+	diskutil eject /dev/disk2s1
 
-```
 
 et voilà c'est prêt :
 
-```
-Disk /dev/disk2s1 ejected
-```
+	Disk /dev/disk2s1 ejected
+
 sortez la carte du lecteur, mettez la dans votre raspberry et démarrez le !
 
